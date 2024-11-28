@@ -264,7 +264,7 @@ const ProductUploadForm = () => {
                           {...field}
                           value={field.value || ""}
                           onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 0; // Parse value as number
+                            const value = parseFloat(e.target.value) || 0;
                             form.setValue("width", value);
                           }}
                           className="bg-white placeholder:text-slate-400 py-6 !rounded-xl border-[1px] border-slate-500"

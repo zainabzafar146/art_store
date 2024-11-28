@@ -110,10 +110,6 @@ const ProductImage = ({ product }: ProductImageProps) => {
             </div>
           </div>
           <div className="flex justify-between">
-            <span className="font-semibold">Availability</span>
-            <span>Name</span>
-          </div>
-          <div className="flex justify-between">
             <span className="font-semibold">Subtoal</span>
             <span>{product.price * quantity}</span>
           </div>
