@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String           @id @default(cuid())
+  firstName        String
+  lastName         String
+  phoneNo          String?          @unique
+  email            String           @unique
+  password         String
+  role             Role             @default(CUSTOMER)
+  customer         Customer?
+  artist           Artist?
+  sentMessages     Message[]        @relation("sentMessages")
+  receivedMessages Message[]        @relation("receivedMessages")
+  cart             Cart?
+  Review           Review[]
+  AuctionProduct   AuctionProduct[]
+  Account          Account[]
+  Session          Session[]
+}
+
+model Account {
+  id                 String    @id @default(cuid())
+  userId             String
+  providerType       String
+  providerId         String
+  providerAccountId  String
+  refreshToken       String?
+  accessToken        String?
+  accessTokenExpires DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id])
+
+  @@unique([providerId, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  expires      DateTime
+  sessionToken String   @unique
+  accessToken  String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Customer {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+  Chat   Chat[]
+}
+
+model Artist {
+  id       String @id @default(cuid())
+  userId   String @unique
+  imageUrl String
+  user     User   @relation(fields: [userId], references: [id])
+  Chat     Chat[]
+}
+
+model Product {
+  id             Int              @id @default(autoincrement())
+  name           String
+  price          Float
+  vendor         String
+  type           String
+  color          String
+  material       String
+  width          String
+  height         String
+  description    String
+  feature        String
+  style          String
+  imageUrl       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  cartItems      CartItem[]
+  Review         Review[]
+  AuctionProduct AuctionProduct[]
+}
+
+model AuctionProduct {
+  id            Int       @id @default(autoincrement())
+  productId     Int
+  product       Product   @relation(fields: [productId], references: [id])
+  name          String
+  price         Float
+  vendor        String
+  type          String
+  color         String
+  material      String
+  width         String
+  height        String
+  description   String
+  feature       String
+  style         String
+  imageUrl      String
+  startingBid   Float
+  currentBid    Float     @default(0.0)
+  soldOutBid    Float?
+  auctionStatus String // e.g., "ACTIVE", "SOLD", "PENDING_PAYMENT", "AVAILABLE"
+  startDate     DateTime
+  endDate       DateTime
+  BidTime       DateTime?
+  userId        String?
+  currentBidder User?     @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  productId   Int
+  product     Product  @relation(fields: [productId], references: [id])
+  rating      Int
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Chat {
+  id         String    @id @default(cuid())
+  customerId String
+  artistId   String
+  customer   Customer  @relation(fields: [customerId], references: [userId])
+  artist     Artist    @relation(fields: [artistId], references: [userId])
+  messages   Message[]
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  chatId     String
+  senderId   String
+  receiverId String
+  chat       Chat     @relation(fields: [chatId], references: [id])
+  timestamp  DateTime @default(now())
+  sender     User     @relation("sentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("receivedMessages", fields: [receiverId], references: [id])
+}
+
+enum Role {
+  CUSTOMER
+  ARTIST
+  ADMIN
+}
