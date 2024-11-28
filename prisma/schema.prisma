@@ -76,8 +76,8 @@ model Product {
   type           String
   color          String
   material       String
-  width          Int
-  height         Int
+  width          String
+  height         String
   description    String
   feature        String
   style          String
