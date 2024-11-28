@@ -1,4 +1,4 @@
-"use server"
+"use server";
 
 import { prisma } from "@/lib/db"; // Adjust path based on your project structure
 import { z } from "zod";
@@ -58,8 +58,8 @@ export async function createAuctionProduct(
         type: product.type,
         color: product.color,
         material: product.material,
-        width: product.width,
-        height: product.height,
+        width: product.width.toString(),
+        height: product.height.toString(),
         description: product.description,
         feature: product.feature,
         style: product.style,
