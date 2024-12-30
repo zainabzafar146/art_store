@@ -97,19 +97,27 @@ const RegisterAsArtistForm = () => {
       if (file) {
         const uploadedImageUrl = await handleImageUpload(file);
         if (!uploadedImageUrl) {
+          toast.error("Failed to upload image");
           return;
         }
         setImageUrl(uploadedImageUrl);
       }
-      const response = await registerArtist({ ...data, imageUrl: imageUrl ?? undefined  });
 
-      if (!response) {
-        toast.error("Error registering artist");
-      } else {
+      const response = await registerArtist({ 
+        ...data, 
+        imageUrl: imageUrl ?? undefined 
+      });
+
+      if (response) {
         toast.success("Artist successfully registered");
         router.push("/sign-in");
       }
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to register artist");
+      }
       console.error("Error registering artist:", error);
     }
   };
@@ -120,7 +128,7 @@ const RegisterAsArtistForm = () => {
         name="image"
         type="file"
         onChange={handleFileChange}
-        className="bg-white cursor-pointer rounded-full w-20 h-20"
+        className="bg-whit cursor-pointer rounded-full"
       />
       {uploadError && <p className="text-red-500">{uploadError}</p>}
       <Form {...form}>

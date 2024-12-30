@@ -47,7 +47,7 @@ export async function registerArtist(
         role: "ARTIST",
         artist: {
           create: {
-            imageUrl: data.imageUrl as string,
+            imageUrl: data.imageUrl || '',
           },
         },
       },
@@ -57,6 +57,12 @@ export async function registerArtist(
     });
     return newArtist;
   } catch (error) {
-    throw new Error("Registration failed.");
+    console.error("Registration error:", error);
+    
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    
+    throw new Error("Registration failed. Please try again.");
   }
 }

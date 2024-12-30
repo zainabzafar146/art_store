@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
-const ProductDetails = () => {
+const ProductDetails = ({ userEmail }: { userEmail: string }) => {
   const params = useParams();
   const productId = params.productId;
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +46,7 @@ const ProductDetails = () => {
       <div className="flex flex-col gap-y-10 py-10 max-w-screen-2xl w-full">
         {product && (
           <>
-            <ProductImage product={product} />
+            <ProductImage product={product} userEmail={userEmail} />
             <ProductStats />
             <ProductDescription product={product} />
             <ProductReview product={product} />

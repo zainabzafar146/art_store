@@ -14,7 +14,7 @@ const SwiperCard = ({ imgUrl, name, color, txtColor }: ProductProp) => {
 
   return (
     <div
-      className={`flex flex-col items-center pt-5 justify-between h-[400px] w-full text-white bg-${color}`}
+      className={`flex flex-col items-center pt-5 justify-between h-[400px] w-full bg-${color}`}
     >
       <Image
         src={imgUrl}

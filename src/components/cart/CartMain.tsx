@@ -8,21 +8,34 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { MdDelete } from "react-icons/md";
+import { fetchUser } from "@/actions/fetchUser";
 
-const CartMain = () => {
+const CartMain = ({ userEmail }: { userEmail: string }) => {
   const [cart, setCart] = useState<any>();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = await fetchUser(userEmail);
+      setUser(user);
+      console.log("this is user", user.customer?.userId);
+    };
+    fetchUserData();
+  }, [userEmail]);
 
   const fetchCart = async () => {
     try {
-      const cartResponse = await fetchCartItems("cm0jp9qz000002or3ysse664e");
+      const cartResponse = await fetchCartItems(user.customer.userId);
       setCart(cartResponse.cart);
     } catch (error) {
       toast.error("Can not find cart. Please add items to the cart first.");
     }
   };
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (user?.customer?.userId) {
+      fetchCart();
+    }
+  }, [user]);
 
   async function handleDeleteItem(userId: string, productId: number) {
     const response = await deleteCartItem(userId, productId);

@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/db";
 
 export async function fetchCartItems(userId: string) {
+  console.log("this is userId", userId);
+
   try {
     const cart = await prisma.cart.findUnique({
       where: { userId },

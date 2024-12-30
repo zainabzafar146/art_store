@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { registerUser } from "@/actions/reisterUser";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // Schema for the form validation
 const FormSchema = z.object({
@@ -31,6 +32,8 @@ const FormSchema = z.object({
 });
 
 const SignUpPage = () => {
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -46,6 +49,7 @@ const SignUpPage = () => {
     try {
       registerUser(data);
       toast.success("Account created successfully");
+      router.push("/sign-in");
     } catch (error) {
       toast.error("There is an error creating the account, Try again later.");
     }
