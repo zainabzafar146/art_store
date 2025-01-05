@@ -24,6 +24,7 @@ model User {
   AuctionProduct   AuctionProduct[]
   Account          Account[]
   Session          Session[]
+  Product          Product[]
 }
 
 model Account {
@@ -86,6 +87,8 @@ model Product {
   updatedAt      DateTime         @updatedAt
   cartItems      CartItem[]
   Review         Review[]
+  artistUserId   String?
+  user           User?            @relation(fields: [artistUserId], references: [id])
   AuctionProduct AuctionProduct[]
 }
 

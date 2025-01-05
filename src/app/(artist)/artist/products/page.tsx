@@ -1,6 +1,7 @@
 import PageHeading from "@/components/common/PageHeading";
-import ProductUploadForm from "@/components/artist/ProductUploadForm";
+
 import { auth } from "@/auth";
+import Products from "@/components/artist/Products";
 
 const page = async () => {
 
@@ -8,8 +9,8 @@ const page = async () => {
 
   return (
     <section className="flex flex-col gap-y-10 py-10">
-      <PageHeading text="Upload Art" />
-      <ProductUploadForm session={session ?? null}   />
+      <PageHeading text="PRODUCTS" />
+      <Products session={session ?? null}   />
     </section>
   );
 };

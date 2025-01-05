@@ -1,11 +1,11 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
-import { IoSearchOutline } from "react-icons/io5";
+
 import Link from "next/link";
 import Image from "next/image";
 import { MdAccountBox } from "react-icons/md";
 import { LuMessagesSquare } from "react-icons/lu";
 import { auth } from "@/auth";
+import Serach from "./Serach";
 
 const Header = async () => {
   const session = await auth();
@@ -22,18 +22,12 @@ const Header = async () => {
             className="w-18 md:w-24"
           />
         </div>
-        <div className="relative">
-          <Input
-            type="search"
-            placeholder="Search"
-            className="border-none bg-[#58C5C7] placeholder:text-white rounded-3xl px-5"
-          />
-          <div className="absolute bg-black rounded-full p-1 right-1 top-1">
-            <IoSearchOutline color="white" size={25} />
-          </div>
-        </div>
+        <Serach />
         {session?.user.role === "ARTIST" ? (
-          <Link href={"/artist"} className="flex justify-end items-center hover:text-[#58C5C7]">
+          <Link
+            href={"/artist"}
+            className="flex justify-end items-center hover:text-[#58C5C7]"
+          >
             Dashboard
           </Link>
         ) : (

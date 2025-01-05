@@ -16,6 +16,7 @@ const FormSchema = z.object({
   feature: z.string().min(1, { message: "Feature is required" }),
   style: z.string().min(1, { message: "Style is required" }),
   imageUrl: z.string().optional(),
+  artistUserId: z.string(),
 });
 
 export async function uploadProduct(productData: z.infer<typeof FormSchema>) {
@@ -35,6 +36,7 @@ export async function uploadProduct(productData: z.infer<typeof FormSchema>) {
         feature: productData.feature,
         style: productData.style,
         imageUrl: productData.imageUrl as string,
+        // artistUserId: productData.artistUserId,
       },
     });
     return newProduct;

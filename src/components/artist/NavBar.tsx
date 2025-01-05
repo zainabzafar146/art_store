@@ -3,9 +3,9 @@ import Link from "next/link";
 import React from "react";
 import { LuMessagesSquare } from "react-icons/lu";
 import { MdAccountBox } from "react-icons/md";
-const NavBar = () => {
+const ArtistNavBar = () => {
   return (
-    <div className="flex justify-between items-center py-5 px-10 border-b-[1px] shadow-md">
+    <div className="flex justify-between items-center py-5 px-10 border-b-[1px]">
       <Link href={"/"}>
         <Image
           src={"/logo-removebg.png"}
@@ -16,6 +16,9 @@ const NavBar = () => {
         />
       </Link>
       <div className="flex gap-x-5">
+        <Link href={"/artist/products"} className="hover:text-[#58C5C7]">
+          My Products
+        </Link>
         <Link href={"/artist/chats"}>
           <LuMessagesSquare size={30} />
         </Link>
@@ -27,4 +30,4 @@ const NavBar = () => {
   );
 };
 
-export default NavBar;
+export default ArtistNavBar;

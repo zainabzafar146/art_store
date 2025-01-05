@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
-import NavBar from "@/components/artist/NavBar";
+import ArtistNavBar from "@/components/artist/NavBar";
 import Footer from "@/components/common/Footer";
+import NavBar from "@/components/common/NavBar";
 import { redirect } from "next/navigation";
 import React from "react";
 
@@ -12,9 +13,10 @@ const ArtistLayout = async ({ children }: { children: React.ReactNode }) => {
   }
   return (
     <div className="flex flex-col">
+      <ArtistNavBar />
       <NavBar />
       {children}
-      <Footer/>
+      <Footer />
     </div>
   );
 };

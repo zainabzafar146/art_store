@@ -1,22 +1,24 @@
 "use client";
-import React, { ChangeEvent, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { fetchUser } from "@/actions/fetchUser";
+import { uploadProduct } from "@/actions/productUpload";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
   FormField,
-  FormLabel,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ChangeEvent, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { uploadProduct } from "@/actions/productUpload";
+import { z } from "zod";
+import { Session } from "next-auth";
 
 const FormSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -31,7 +33,6 @@ const FormSchema = z.object({
   feature: z.string().min(1, { message: "Feature is required" }),
   style: z.string().min(1, { message: "Style is required" }),
 });
-
 const generateRandomString = (length: number) => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -42,10 +43,39 @@ const generateRandomString = (length: number) => {
   return result;
 };
 
-const ProductUploadForm = () => {
+const ProductUploadForm = ({
+  session,
+}: {
+  session: Session | null | undefined;
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [disable, setDisable] = useState(false);
+  const [artistUserId, setArtistUserId] = useState("");
+  const fetchArtistId = async () => {
+    try {
+      if (!session?.user?.email) return;
+      const artist = await fetchUser(session.user.email);
+      console.log("this is the artist data", artist.artist?.userId);
+      if (artist) {
+        setArtistUserId(artist.artist?.userId ?? "");
+      }
+    } catch (error) {
+      console.error("Failed to fetch artist", error);
+    }
+  };
+  // const fetchArtistId = async () =
+  //     if (!session?.user?.email) return;
+  //     const artist = await fetchUser(session.user.email);
+  //     if (artist) {
+  //       setArtistUserId(artist.artist?.userId ?? "");
+  //       console.log("this is the user id", artist.artist?.userId);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch artist", error);
+  //   }
+  // };
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -97,6 +127,7 @@ const ProductUploadForm = () => {
   };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    fetchArtistId();
     setDisable(true);
     console.log("this is onSubmit");
     try {
@@ -113,6 +144,7 @@ const ProductUploadForm = () => {
         const response = uploadProduct({
           ...data,
           imageUrl: uploadedImageUrl ?? undefined,
+          artistUserId: artistUserId,
         });
         if (!response) {
           toast.error("Error uploading product");
@@ -251,6 +283,8 @@ const ProductUploadForm = () => {
                     </FormItem>
                   )}
                 />
+
+                
 
                 <FormField
                   control={form.control}
