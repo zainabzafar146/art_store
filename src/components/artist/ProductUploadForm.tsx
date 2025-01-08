@@ -52,6 +52,7 @@ const ProductUploadForm = ({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [disable, setDisable] = useState(false);
   const [artistUserId, setArtistUserId] = useState("");
+
   const fetchArtistId = async () => {
     try {
       if (!session?.user?.email) return;
@@ -64,17 +65,10 @@ const ProductUploadForm = ({
       console.error("Failed to fetch artist", error);
     }
   };
-  // const fetchArtistId = async () =
-  //     if (!session?.user?.email) return;
-  //     const artist = await fetchUser(session.user.email);
-  //     if (artist) {
-  //       setArtistUserId(artist.artist?.userId ?? "");
-  //       console.log("this is the user id", artist.artist?.userId);
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch artist", error);
-  //   }
-  // };
+
+  useEffect(() => {
+    fetchArtistId();
+  }, [session]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -127,9 +121,8 @@ const ProductUploadForm = ({
   };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    fetchArtistId();
     setDisable(true);
-    console.log("this is onSubmit");
+    console.log("this is onSubmit with user id", artistUserId);
     try {
       if (file) {
         const uploadedImageUrl = await handleImageUpload(file);
@@ -141,11 +134,13 @@ const ProductUploadForm = ({
 
         console.log("after image url");
         console.log("this is the image url as state set", uploadedImageUrl);
+
         const response = uploadProduct({
           ...data,
           imageUrl: uploadedImageUrl ?? undefined,
           artistUserId: artistUserId,
         });
+
         if (!response) {
           toast.error("Error uploading product");
         } else {
@@ -283,8 +278,6 @@ const ProductUploadForm = ({
                     </FormItem>
                   )}
                 />
-
-                
 
                 <FormField
                   control={form.control}

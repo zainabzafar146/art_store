@@ -5,16 +5,16 @@ import { useEffect, useState } from "react";
 import { fetchUser } from "@/actions/fetchUser";
 import ProductsCard from "./ProductCard";
 
-async function Products({ session }: { session: Session | null | undefined }) {
+const Products = ({ session }: { session: Session | null | undefined }) => {
   const [artistUserId, setArtistUserId] = useState("");
-  const [products, setProducts] = useState<any>("");
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchArtistId = async () => {
       try {
         if (!session?.user?.email) return;
         const artist = await fetchUser(session.user.email);
-        console.log("this is the artist data", artist.artist?.userId);
         if (artist) {
           setArtistUserId(artist.artist?.userId ?? "");
         }
@@ -26,10 +26,12 @@ async function Products({ session }: { session: Session | null | undefined }) {
 
     const fetchArtistProductsById = async () => {
       try {
-        const products = await fetchArtistProducts(artistUserId);
-        setProducts(products);
+        const response = await fetchArtistProducts(artistUserId);
+        setProducts(response.data ?? []);
       } catch (error) {
         console.error("Failed to fetch artist products", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     if (artistUserId) {
@@ -38,31 +40,37 @@ async function Products({ session }: { session: Session | null | undefined }) {
   }, [artistUserId]);
 
   return (
-    <div className="flex flex-col justify-between min-h-[70svh]">
-      <div className="flex max-w-screen-2xl w-full">
-        <div className="hidden lg:flex flex-col gap-y-16 w-[30%] text-white py-10 px-10">
-          <span className="text-center font-medium text-lg py-5 bg-[#58C5C7] rounded-3xl">
-            Filters
-          </span>
+    <div className="flex flex-col items-center justify-center min-h-[70svh]">
+      {!artistUserId || isLoading ? (
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#58C5C7]" />
         </div>
-        <div className="flex flex-col gap-y-10 py-10 w-full lg:w-[70%] px-5 md:px-10">
-          <div className="w-full py-5 bg-[#E5E5E5] text-center"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:grid-rows-3 gap-10">
-            {products.map((item: any, index: any) => (
-              <ProductsCard
-                key={index}
-                imageUrl={item.imageUrl}
-                name={item.name}
-                price={item.price}
-                vendor={item.vendor}
-                productId={item.id}
-              />
-            ))}
+      ) : (
+        <div className="flex max-w-screen-2xl w-full">
+          <div className="flex flex-col gap-y-10 py-10 w-full px-5 md:px-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:grid-rows-3 gap-10">
+              {products.length === 0 ? (
+                <div className="flex justify-center items-center col-span-full min-h-[50vh]">
+                  <p className="text-lg text-gray-600">No products available</p>
+                </div>
+              ) : (
+                products.map((item: any, index: any) => (
+                  <ProductsCard
+                    key={index}
+                    imageUrl={item.imageUrl}
+                    name={item.name}
+                    price={item.price}
+                    vendor={item.vendor}
+                    productId={item.id}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
-}
+};
 
 export default Products;

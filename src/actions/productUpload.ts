@@ -36,7 +36,7 @@ export async function uploadProduct(productData: z.infer<typeof FormSchema>) {
         feature: productData.feature,
         style: productData.style,
         imageUrl: productData.imageUrl as string,
-        // artistUserId: productData.artistUserId,
+        artistUserId: productData.artistUserId,
       },
     });
     return newProduct;
