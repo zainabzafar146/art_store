@@ -1,12 +1,14 @@
 
+import { auth } from "@/auth";
 import ProductDetails from "@/components/auctions/ProductDetails";
 
-const page = () => {
+const page = async () => {
 
+  const session = await auth();
 
   return (
     <section className="flex justify-center">
-      <ProductDetails/>
+      <ProductDetails session={session ?? null} />
     </section>
   );
 };

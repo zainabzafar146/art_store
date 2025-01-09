@@ -5,20 +5,32 @@ interface AuctionTimerProps {
 }
 
 const AuctionTimer: React.FC<AuctionTimerProps> = ({ firstBidTime }) => {
-  const [timeRemaining, setTimeRemaining] = useState<number>(
-    firstBidTime ? 24 * 60 * 60 * 1000 - (Date.now() - firstBidTime.getTime()) : 0
-  );
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [initialized, setInitialized] = useState(false); // Track initialization
 
   useEffect(() => {
+    if (!firstBidTime || initialized) return;
+
+    const calculateTimeRemaining = () => {
+      const startTime = new Date(firstBidTime).getTime();
+      const now = Date.now();
+      const remaining = 24 * 60 * 60 * 1000 - (now - startTime);
+      return remaining > 0 ? remaining : 0;
+    };
+
+    // Set initial timeRemaining and mark as initialized
+    setTimeRemaining(calculateTimeRemaining());
+    setInitialized(true);
+
     const timer = setInterval(() => {
-      const remaining = firstBidTime 
-        ? 24 * 60 * 60 * 1000 - (Date.now() - firstBidTime.getTime())
-        : 0;
-      setTimeRemaining(remaining > 0 ? remaining : 0);
+      setTimeRemaining((prev) => {
+        const newRemaining = calculateTimeRemaining();
+        return newRemaining > 0 ? newRemaining : 0;
+      });
     }, 1000);
 
-    return () => clearInterval(timer); // Clean up the timer on unmount
-  }, [firstBidTime]);
+    return () => clearInterval(timer); // Clean up interval on unmount
+  }, [firstBidTime, initialized]);
 
   // Format time to HH:MM:SS
   const formatTime = (ms: number) => {

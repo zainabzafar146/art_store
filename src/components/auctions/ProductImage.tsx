@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -8,37 +8,92 @@ import { placeBid } from "@/actions/placeBid";
 import AuctionTimer from "./AuctionTimer"; // Timer Component
 import { Button } from "../ui/button";
 import { AuctionProduct } from "@prisma/client";
-
-// interface ProductDetails {
-//   id: number;
-//   name: string;
-//   price: number;
-//   vendor: string;
-//   type: string;
-//   color: string;
-//   material: string;
-//   width: string;
-//   height: string;
-//   imageUrl: string;
-//   startingBid: string;
-//   currentBid: string;
-//   startDate: string;
-//   endDate: string;
-//   auctionStatus: string;
-//   bidTime: ;
-// }
+import { Session } from "next-auth";
+import { fetchUser } from "@/actions/fetchUser";
 
 interface ProductImageProps {
   product: AuctionProduct;
+  session: Session | null | undefined;
 }
 
-const ProductImage = ({ product }: ProductImageProps) => {
+const ProductImage = ({ product, session }: ProductImageProps) => {
   const [disable, setDisable] = useState(false);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [currentBid, setCurrentBid] = useState<number>(
     Number(product.currentBid)
   );
   const [bidTime, setBidTime] = useState<Date | null>(product.BidTime);
+  const [artistUserId, setArtistUserId] = useState("");
+  const [remainingTime, setRemainingTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!product.BidTime) return;
+
+    const timer = setInterval(() => {
+      const bidTimeMs = new Date(product.updatedAt).getTime();
+      const currentTime = Date.now();
+      const timePassed = currentTime - bidTimeMs;
+      const timeRemaining = 24 * 60 * 60 * 1000 - timePassed;
+
+      if (timeRemaining <= 0) {
+        setRemainingTime("Auction Ended");
+        clearInterval(timer);
+        return;
+      }
+
+      const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+      const minutes = Math.floor(
+        (timeRemaining % (60 * 60 * 1000)) / (60 * 1000)
+      );
+      const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+
+      setRemainingTime(
+        `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+          .toString()
+          .padStart(2, "0")}`
+      );
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [product.BidTime]);
+
+  const fetchArtistId = async () => {
+    try {
+      if (!session?.user?.email) return;
+      const artist = await fetchUser(session.user.email);
+      if (artist) {
+        setArtistUserId(artist.artist?.userId ?? "");
+      }
+    } catch (error) {
+      console.error("Failed to fetch artist", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchArtistId();
+  }, [artistUserId]);
+
+  const getRemainingTime = (bidTime: Date | null) => {
+    if (!bidTime) return null;
+
+    const bidTimeMs = new Date(bidTime).getTime();
+    const currentTime = Date.now();
+    const timePassed = currentTime - bidTimeMs;
+    const timeRemaining = 24 * 60 * 60 * 1000 - timePassed; // 24 hours in milliseconds
+
+    if (timeRemaining <= 0) return "Auction Ended";
+
+    // Convert to hours, minutes, seconds
+    const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+    const minutes = Math.floor(
+      (timeRemaining % (60 * 60 * 1000)) / (60 * 1000)
+    );
+    const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const handleBidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBidAmount(Number(e.target.value));
@@ -47,7 +102,7 @@ const ProductImage = ({ product }: ProductImageProps) => {
   const addToCart = async () => {
     // Ensure product.currentBid is used if currentBid is not initialized
     const currentBidValue = currentBid || Number(product.currentBid);
-
+  
     if (
       bidAmount <= currentBidValue ||
       bidAmount <= Number(product.startingBid)
@@ -57,19 +112,18 @@ const ProductImage = ({ product }: ProductImageProps) => {
       );
       return;
     }
-
+  
     setDisable(true);
-
+  
     try {
       const response = await placeBid(
-        "cm0jp9qz000002or3ysse664e", // Replace with actual user ID or context
+        artistUserId, // Replace with actual user ID or context
         product.id,
         bidAmount
       );
       if (response.success) {
-        setCurrentBid(bidAmount); // Update the current bid dynamically
-        setBidTime(new Date()); // Convert to Date object
         toast.success("Bid placed successfully");
+        window.location.reload(); // Refresh the page
       } else {
         toast.error("Error placing bid. Please try again.");
       }
@@ -79,6 +133,7 @@ const ProductImage = ({ product }: ProductImageProps) => {
       setDisable(false);
     }
   };
+  
 
   return (
     <div className="flex flex-col sm:flex-row gap-x-5 md:gap-x-10 lg:gap-x-20 gap-y-10 px-5 md:px-10 py-10 lg:max-h-[100svh]">
@@ -122,7 +177,7 @@ const ProductImage = ({ product }: ProductImageProps) => {
           </div>
           <div className="flex justify-between">
             <span className="font-semibold">Bid Time</span>
-            <AuctionTimer firstBidTime={bidTime} />
+            <span className="text-[#58C5C7] font-medium">{remainingTime ?? "00:00:00"}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-semibold">Dimension</span>
@@ -134,7 +189,12 @@ const ProductImage = ({ product }: ProductImageProps) => {
             <Label htmlFor="bidAmount" className="text-base font-semibold">
               Enter Bid
             </Label>
-            <Input type="number" id="bidAmount" onChange={handleBidChange} />
+            <Input
+              type="number"
+              id="bidAmount"
+              value={bidAmount || ""}
+              onChange={handleBidChange}
+            />
           </div>
         </div>
 

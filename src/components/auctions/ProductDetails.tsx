@@ -5,8 +5,9 @@ import ProductImage from "@/components/auctions/ProductImage";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Session } from "next-auth";
 
-const ProductDetails = () => {
+const ProductDetails = ({ session }: { session: Session | null | undefined }) => {
   const params = useParams();
   const productId = params.productId;
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +42,7 @@ const ProductDetails = () => {
       <div className="flex flex-col gap-y-10 py-10 max-w-screen-2xl w-full">
         {product && (
           <>
-            <ProductImage product={product} />
+            <ProductImage product={product} session={session ?? null} />
             {/* <ProductStats /> */}
             <ProductDescription product={product} />
           </>
