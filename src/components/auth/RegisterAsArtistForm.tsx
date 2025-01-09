@@ -94,18 +94,19 @@ const RegisterAsArtistForm = () => {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
+      let uploadedImageUrl = null;
+
       if (file) {
-        const uploadedImageUrl = await handleImageUpload(file);
+        uploadedImageUrl = await handleImageUpload(file);
         if (!uploadedImageUrl) {
           toast.error("Failed to upload image");
           return;
         }
-        setImageUrl(uploadedImageUrl);
       }
 
-      const response = await registerArtist({ 
-        ...data, 
-        imageUrl: imageUrl ?? undefined 
+      const response = await registerArtist({
+        ...data,
+        imageUrl: uploadedImageUrl ?? undefined,
       });
 
       if (response) {
