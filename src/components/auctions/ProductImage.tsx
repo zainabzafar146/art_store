@@ -20,42 +20,47 @@ const ProductImage = ({ product, session }: ProductImageProps) => {
   const [disable, setDisable] = useState(false);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [currentBid, setCurrentBid] = useState<number>(
-    Number(product.currentBid)
+    Number(product?.currentBid || 0)
   );
-  const [bidTime, setBidTime] = useState<Date | null>(product.BidTime);
+  const [bidTime, setBidTime] = useState<Date | null>(product?.BidTime || null);
   const [artistUserId, setArtistUserId] = useState("");
   const [remainingTime, setRemainingTime] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!product.BidTime) return;
+    if (!product?.BidTime) return;
 
     const timer = setInterval(() => {
-      const bidTimeMs = new Date(product.updatedAt).getTime();
-      const currentTime = Date.now();
-      const timePassed = currentTime - bidTimeMs;
-      const timeRemaining = 24 * 60 * 60 * 1000 - timePassed;
+      try {
+        const bidTimeMs = new Date(product.BidTime!).getTime();
+        const currentTime = Date.now();
+        const timePassed = currentTime - bidTimeMs;
+        const timeRemaining = 24 * 60 * 60 * 1000 - timePassed;
 
-      if (timeRemaining <= 0) {
-        setRemainingTime("Auction Ended");
+        if (timeRemaining <= 0) {
+          setRemainingTime("Auction Ended");
+          clearInterval(timer);
+          return;
+        }
+
+        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+        const minutes = Math.floor(
+          (timeRemaining % (60 * 60 * 1000)) / (60 * 1000)
+        );
+        const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+
+        setRemainingTime(
+          `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`
+        );
+      } catch (error) {
+        console.error("Timer error:", error);
         clearInterval(timer);
-        return;
       }
-
-      const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
-      const minutes = Math.floor(
-        (timeRemaining % (60 * 60 * 1000)) / (60 * 1000)
-      );
-      const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
-
-      setRemainingTime(
-        `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-          .toString()
-          .padStart(2, "0")}`
-      );
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [product.BidTime]);
+  }, [product?.BidTime]);
 
   const fetchArtistId = async () => {
     try {
@@ -100,22 +105,26 @@ const ProductImage = ({ product, session }: ProductImageProps) => {
   };
 
   const addToCart = async () => {
-    // Ensure product.currentBid is used if currentBid is not initialized
-    const currentBidValue = currentBid || Number(product.currentBid);
-  
-    if (
-      bidAmount <= currentBidValue ||
-      bidAmount <= Number(product.startingBid)
-    ) {
-      toast.error(
-        "Your bid must be higher than both the current bid and starting bid."
-      );
-      return;
-    }
-  
-    setDisable(true);
-  
     try {
+      if (!artistUserId) {
+        toast.error("Please login first");
+        return;
+      }
+      // Ensure product.currentBid is used if currentBid is not initialized
+      const currentBidValue = currentBid || Number(product.currentBid);
+
+      if (
+        bidAmount <= currentBidValue ||
+        bidAmount <= Number(product.startingBid)
+      ) {
+        toast.error(
+          "Your bid must be higher than both the current bid and starting bid."
+        );
+        return;
+      }
+
+      setDisable(true);
+
       const response = await placeBid(
         artistUserId, // Replace with actual user ID or context
         product.id,
@@ -128,12 +137,12 @@ const ProductImage = ({ product, session }: ProductImageProps) => {
         toast.error("Error placing bid. Please try again.");
       }
     } catch (error) {
-      toast.error("Error placing bid");
+      console.error("Error in addToCart:", error);
+      toast.error("An error occurred while placing bid");
     } finally {
       setDisable(false);
     }
   };
-  
 
   return (
     <div className="flex flex-col sm:flex-row gap-x-5 md:gap-x-10 lg:gap-x-20 gap-y-10 px-5 md:px-10 py-10 lg:max-h-[100svh]">
@@ -177,7 +186,9 @@ const ProductImage = ({ product, session }: ProductImageProps) => {
           </div>
           <div className="flex justify-between">
             <span className="font-semibold">Bid Time</span>
-            <span className="text-[#58C5C7] font-medium">{remainingTime ?? "00:00:00"}</span>
+            <span className="text-[#58C5C7] font-medium">
+              {remainingTime ?? "00:00:00"}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="font-semibold">Dimension</span>

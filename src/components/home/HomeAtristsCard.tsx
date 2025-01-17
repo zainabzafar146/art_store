@@ -24,7 +24,13 @@ const HomeAtristsCard = ({ artistUser }: ArtistCardProps) => {
   return (
     <div className="flex flex-col items-center gap-y-3">
       <span className="text-xl font-semibold">{artistUser.firstName}</span>
-      <Image src={artistUser.artist.imageUrl} alt="" width={1000} height={1000} className="w-80" />
+      <Image
+        src={artistUser.artist.imageUrl}
+        alt=""
+        width={1000}
+        height={1000}
+        className="w-80"
+      />
     </div>
   );
 };
