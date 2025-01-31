@@ -1,5 +1,8 @@
 "use server";
 import { prisma } from "@/lib/db";
+import { createCartAndAddCartItem } from "./createCartAndAddCartItem";
+
+// ... existing code ...
 
 export async function placeBid(
   userId: string,
@@ -8,6 +11,7 @@ export async function placeBid(
 ) {
   const product = await prisma.auctionProduct.findUnique({
     where: { id: auctionProductId },
+    include: { product: true }, // Include the related Product data
   });
 
   if (
@@ -27,7 +31,29 @@ export async function placeBid(
 
   // Only set BidTime if it doesn't exist
   if (!product.BidTime) {
-    updateData.BidTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const bidEndTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    updateData.BidTime = bidEndTime;
+
+    // Schedule cart creation when bid ends
+    setTimeout(async () => {
+      try {
+        const currentProduct = await prisma.auctionProduct.findUnique({
+          where: { id: auctionProductId },
+          include: { product: true },
+        });
+
+        if (currentProduct?.userId === userId) {
+          await createCartAndAddCartItem(
+            userId,
+            currentProduct.productId,
+            1,
+            currentProduct.currentBid
+          );
+        }
+      } catch (error) {
+        console.error("Error adding item to cart after bid end:", error);
+      }
+    }, 24 * 60 * 60 * 1000); // 24 hours
   }
 
   // Update the product's current bid and bidder details
@@ -38,3 +64,4 @@ export async function placeBid(
 
   return { success: true, message: "Bid placed successfully." };
 }
+

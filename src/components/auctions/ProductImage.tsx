@@ -66,8 +66,10 @@ const ProductImage = ({ product, session }: ProductImageProps) => {
     try {
       if (!session?.user?.email) return;
       const artist = await fetchUser(session.user.email);
+      console.log("this is the user", artist);  
+      console.log(artist);
       if (artist) {
-        setArtistUserId(artist.artist?.userId ?? "");
+        setArtistUserId(artist.customer?.userId ?? "");
       }
     } catch (error) {
       console.error("Failed to fetch artist", error);
@@ -78,36 +80,16 @@ const ProductImage = ({ product, session }: ProductImageProps) => {
     fetchArtistId();
   }, [artistUserId]);
 
-  const getRemainingTime = (bidTime: Date | null) => {
-    if (!bidTime) return null;
-
-    const bidTimeMs = new Date(bidTime).getTime();
-    const currentTime = Date.now();
-    const timePassed = currentTime - bidTimeMs;
-    const timeRemaining = 24 * 60 * 60 * 1000 - timePassed; // 24 hours in milliseconds
-
-    if (timeRemaining <= 0) return "Auction Ended";
-
-    // Convert to hours, minutes, seconds
-    const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
-    const minutes = Math.floor(
-      (timeRemaining % (60 * 60 * 1000)) / (60 * 1000)
-    );
-    const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
-
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  };
 
   const handleBidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBidAmount(Number(e.target.value));
   };
 
   const addToCart = async () => {
+    console.log("this is the id",artistUserId)
     try {
       if (!artistUserId) {
-        toast.error("Please login first");
+        toast.error("Please login as cutomer first");
         return;
       }
       // Ensure product.currentBid is used if currentBid is not initialized

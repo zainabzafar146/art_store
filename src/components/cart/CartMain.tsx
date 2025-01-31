@@ -37,8 +37,8 @@ const CartMain = ({ userEmail }: { userEmail: string }) => {
     }
   }, [user]);
 
-  async function handleDeleteItem(userId: string, productId: number) {
-    const response = await deleteCartItem(userId, productId);
+  async function handleDeleteItem( productId: number) {
+    const response = await deleteCartItem(user.customer?.userId ?? "", productId);
 
     if (response.success) {
       toast.success(response.message);
@@ -83,7 +83,7 @@ const CartMain = ({ userEmail }: { userEmail: string }) => {
                   <Button
                     onClick={() =>
                       handleDeleteItem(
-                        "cm0jp9qz000002or3ysse664e",
+                        
                         item.product.id
                       )
                     }
